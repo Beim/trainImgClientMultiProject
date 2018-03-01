@@ -23,7 +23,7 @@ class Controller {
                 projectPath: path.resolve(__dirname, 'projects', val.name),
             }
         })
-        // 2. 检查项目目录，不存在则新建
+        // 2. 检查项目目录
         for (let project of this.projects) {
             if (!fs.existsSync(project['projectPath'])) {
                 await this.mkProjectFolder(project['projectPath'])
@@ -34,6 +34,7 @@ class Controller {
             ret = await util.requestServer('GET', `/images?projectId=${project.id}&&isTrained=false`)
             if (!ret) throw('get untrainedImgs error')
             const untrainedImgs = ret.data
+            project.untrainedImgs = untrainedImgs
             // 标记有新增图片的项目
             project.hasUntrainedImgs = untrainedImgs.length > 0
             // 下拉未训练的图片
@@ -41,15 +42,38 @@ class Controller {
                 await this.pullImgs(imgType, project)
             }
         }
-        // 4. 对有新增图片的项目进行训练
+        // 4. 对有新增图片的项目进行训练，训练成功后上传模型
         for (let project of this.projects) {
             if (!project.hasUntrainedImgs) continue
-            await this.trainModelAsync(project)
+            let trainSuccess = await this.trainModelAsync(project)
+            if (trainSuccess) {
+                // 上传模型
+                await this.uploadCaffemodel(project)
+                // 更新图片训练成功
+                await this.updateImageTrainStatus(project.untrainedImgs)
+            }
         }
         
     }
 
-    // 训练
+    // 上传训练好的caffemodel
+    async uploadCaffemodel(project) {
+        const caffemodelPath = path.resolve(project['projectPath'], 'caffemodel/model.caffemodel')
+        if (!fs.existsSync(caffemodelPath)) throw(`${caffemodelPath} not found`)
+        const formData = {
+            caffemodel: fs.createReadStream(caffemodelPath)
+        }
+        await util.uploadFileServer(`/caffemodel/${project['id']}`, formData)
+    }
+
+    // 更新训练状态
+    async updateImageTrainStatus(untrainedImgs) {
+        for (let image of untrainedImgs) {
+            await util.requestServer('PUT', `/image/record/${image['id']}?isTrained=true`)
+        }
+    }
+
+    // 训练，loss小于0.01认为训练成功
     async trainModelAsync(project) {
         const caffe = new Caffe(project)
         const solver = new Solver(project)
@@ -68,7 +92,7 @@ class Controller {
             loss = await caffe.caffeTestAsync(solver)
         }
         console.log('test: ', loss)
-
+        return loss <= 0.01
     }
 
     // 下拉图片
@@ -88,7 +112,8 @@ class Controller {
                 imgname: imgname,
             })
             ret = await util.requestServer('GET', `/image/raw?${queryStr}`)
-            if (!ret) throw(`get /image/raw?${queryStr} error`)
+            if (!ret || ret.ok !== 1) ret = await util.requestServer('GET', `/image/raw?${queryStr}`)
+            if (!ret || ret.ok !== 1) throw(`get /image/raw?${queryStr} error`)
             let imgStr = ret.data
             util.saveFile(imgStr, path.resolve(imgSavePath, imgname))
         }        

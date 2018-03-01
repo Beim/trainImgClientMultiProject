@@ -4,6 +4,7 @@ const http = require('http')
 const querystring = require('querystring')
 const URL = require('url')
 const exec = require('child_process').exec
+const request = require('request')
 
 const config = require('./config')
 
@@ -34,6 +35,22 @@ class Util {
             })
         }
         return true
+    }
+
+    uploadFileServer(path, formData) {
+        let url = `http://${config.server.hostname}:${config.server.port}${path}`
+        return this.uploadFile(url, formData)
+    }
+
+    uploadFile(url, formData) {
+        return new Promise((resolve, reject) => {
+            request.post({url, formData}, (err, response, body) => {
+                if (err) {
+                    return reject(err)
+                }
+                return resolve(body)
+            })
+        })
     }
 
     requestServer(method, path, data={}) {

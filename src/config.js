@@ -1,9 +1,7 @@
 const config = {
     server: {
-        // hostname: 'localhost',
-        // hostname: '10.66.93.108',
-        hostname: '10.66.91.141',
-        port: '8888',
+        hostname: '119.29.160.85',
+        port: '20002',
     },
     solver: {
         defaultSolver: {
