@@ -58,6 +58,7 @@ class Controller {
         caffe.convImgs2Lmdb()
         // await caffe.caffeTrainAsync(solver)
         // await caffe.caffeTestAsync(solver)
+        
         let loss = 1000
         while (loss > 0.01) {
             if (!solver.autoAdjustConfig()) break
@@ -158,8 +159,8 @@ class Caffe {
         return new Promise((resolve, reject) => {
             const subProc = child_process.spawn(this.paths['caffeTool'], ['train', `--solver=${solver.solverPath}`], {cwd: this.project['projectPath']})
             subProc.stderr.on('data', data => {
-                console.log('stderr: ')
-                console.log(data.toString())
+                // console.log('stderr: ')
+                // console.log(data.toString())
             })
             subProc.on('close', code => {
                 resolve(code === 0 ? 0 : -1)
@@ -177,17 +178,17 @@ class Caffe {
             const CAFFE_TOOL = paths['caffeTool']
             const MODEL_PATH = paths['trainValModel']
             const CAFFEMODEL_PATH = path.resolve(paths['caffemodel'], 'model.caffemodel')
-            const sub_proc = null
+            let sub_proc = null
             if (solver.config.solver_mode === 'GPU') {
-                sub_proc = child_process.spawn(CAFFE_TOOL, ['test', '-model', MODEL_PATH, '-weights', CAFFEMODEL_PATH, '-gpu', '0', '-iterations', '100'], {'cwd': this.project['projectPath']})
+                sub_proc = child_process.spawn(CAFFE_TOOL, ['test', '-model', MODEL_PATH, '-weights', CAFFEMODEL_PATH, '-gpu', '0', '-iterations', '50'], {'cwd': this.project['projectPath']})
             }
             else if (solver.config.solver_mode === 'CPU') {
-                sub_proc = child_process.spawn(CAFFE_TOOL, ['test', '-model', MODEL_PATH, '-weights', CAFFEMODEL_PATH, '-iterations', '100'], {'cwd': this.project['projectPath']})
+                sub_proc = child_process.spawn(CAFFE_TOOL, ['test', '-model', MODEL_PATH, '-weights', CAFFEMODEL_PATH, '-iterations', '50'], {'cwd': this.project['projectPath']})
             }
             const reg = new RegExp('.*Loss: (.*)\n')
             sub_proc.stderr.on('data', (data) => {
                 data = data.toString()
-                console.log(data)
+                // console.log(data)
                 let result = data.match(reg)
                 if (result) {
                     loss = parseFloat(result[1])

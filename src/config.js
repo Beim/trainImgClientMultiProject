@@ -1,7 +1,8 @@
 const config = {
     server: {
         // hostname: 'localhost',
-        hostname: '10.66.93.108',
+        // hostname: '10.66.93.108',
+        hostname: '10.66.91.141',
         port: '8888',
     },
     solver: {
@@ -21,13 +22,13 @@ const config = {
             weight_decay: 0.0002,
             snapshot: 200,
             snapshot_prefix: "snapshot/bvlc_googlenet",
-            solver_mode: 'CPU',
+            solver_mode: 'GPU',
         },
         MAX_ITER: 2000,
         BASE_LR: 0.001,
     },
+    schedule: '* * 0 * * *', // 每日执行任务的时间 每天0点
     
-
 }
 
 module.exports = config
