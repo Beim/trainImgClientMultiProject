@@ -55,7 +55,11 @@ class Controller {
                 console.log('updateImageTrainStatus ok')
             }
             else {
-                console.log('train failed')
+                console.log('train failed, remove images')
+                for (let imgType of project.untrainedImgs) {
+                    const imgSavePath = path.resolve(project.projectPath, 'rawimages', String(imgType.labelNo))
+                    child_process.execSync(`rm -r ${imgSavePath}`)
+                }
             }
         }
         
@@ -87,7 +91,11 @@ class Controller {
         caffe.convImgs2Lmdb()
         // await caffe.caffeTrainAsync(solver)
         // await caffe.caffeTestAsync(solver)
-        
+        const caffemodelFilePath = path.resolve(caffe.paths.caffemodel, 'model.caffemodel')
+        const caffemodelBackFilePath = path.resolve(caffe.paths.caffemodel, 'model.caffemodel.back')
+        if (fs.existsSync(caffemodelFilePath)) {
+            await util.exec(`cp ${caffemodelFilePath} ${caffemodelBackFilePath}`)
+        }
         let loss = 1000
         while (loss > 0.01) {
             if (!solver.autoAdjustConfig()) break
@@ -97,7 +105,13 @@ class Controller {
             loss = await caffe.caffeTestAsync(solver)
         }
         console.log('test: ', loss)
-        return loss <= 0.01
+        const trainSuccess = loss <= 0.01
+        if (!trainSuccess) {
+            if (fs.existsSync(caffemodelBackFilePath)) {
+                await util.exec(`cp ${caffemodelBackFilePath} ${caffemodelFilePath}`)
+            }
+        }
+        return trainSuccess
     }
 
     // 下拉图片
