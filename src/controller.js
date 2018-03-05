@@ -47,10 +47,15 @@ class Controller {
             if (!project.hasUntrainedImgs) continue
             let trainSuccess = await this.trainModelAsync(project)
             if (trainSuccess) {
+                console.log('uploading model')
                 // 上传模型
                 await this.uploadCaffemodel(project)
                 // 更新图片训练成功
                 await this.updateImageTrainStatus(project.untrainedImgs)
+                console.log('updateImageTrainStatus ok')
+            }
+            else {
+                console.log('train failed')
             }
         }
         
@@ -288,6 +293,7 @@ class Solver {
         let losses_len = this.losses.length
         if (losses_len > 2 && this.losses[losses_len - 1] > 10 * this.losses[losses_len - 2]) {
             this.reduceLr()
+            return true
         } 
         else if (this.config.max_iter < this.MAX_ITER) {
             this.increaseIter()
