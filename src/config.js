@@ -22,7 +22,7 @@ const config = {
             snapshot_prefix: "snapshot/bvlc_googlenet",
             solver_mode: 'GPU',
         },
-        MAX_ITER: 2000,
+        MAX_ITER: 1599,
         BASE_LR: 0.001,
     },
     schedule: '* * 0 * * *', // 每日执行任务的时间 每天0点
