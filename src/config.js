@@ -25,6 +25,9 @@ const config = {
         MAX_ITER: 1599,
         BASE_LR: 0.001,
     },
+    train: {
+        max_loss: 0.1,
+    },
     schedule: '* * 0 * * *', // 每日执行任务的时间 每天0点
     
 }

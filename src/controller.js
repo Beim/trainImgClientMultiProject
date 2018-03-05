@@ -82,7 +82,7 @@ class Controller {
         }
     }
 
-    // 训练，loss小于0.01认为训练成功
+    // 训练，loss小于一定值认为训练成功
     async trainModelAsync(project) {
         const caffe = new Caffe(project)
         const solver = new Solver(project)
@@ -97,7 +97,7 @@ class Controller {
             await util.exec(`cp ${caffemodelFilePath} ${caffemodelBackFilePath}`)
         }
         let loss = 1000
-        while (loss > 0.01) {
+        while (loss > config.train.max_loss) {
             if (!solver.autoAdjustConfig()) break
             console.log('iter: ', solver.config.max_iter, ' lr: ', solver.config.base_lr)
             await caffe.caffeTrainAsync(solver)
@@ -105,7 +105,7 @@ class Controller {
             loss = await caffe.caffeTestAsync(solver)
         }
         console.log('test: ', loss)
-        const trainSuccess = loss <= 0.01
+        const trainSuccess = loss <= config.train.max_loss
         if (!trainSuccess) {
             if (fs.existsSync(caffemodelBackFilePath)) {
                 await util.exec(`cp ${caffemodelBackFilePath} ${caffemodelFilePath}`)
