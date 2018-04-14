@@ -1,6 +1,6 @@
 const config = {
     server: {
-        hostname: '119.29.160.85',
+        hostname: '118.126.113.33',
         port: '20002',
     },
     // 默认训练参数
