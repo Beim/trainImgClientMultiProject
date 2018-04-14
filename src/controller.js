@@ -31,7 +31,7 @@ class Controller {
         }
         // 3. 获取新增图片素材
         for (let project of this.projects) {
-            ret = await util.requestServer('GET', `/images?projectId=${project.id}&&isTrained=false`)
+            ret = await util.requestServer('GET', `/images?projectId=${project.id}&&isTrained=false&&isBlocked=false`)
             if (!ret) throw('get untrainedImgs error')
             const untrainedImgs = ret.data
             project.untrainedImgs = untrainedImgs
