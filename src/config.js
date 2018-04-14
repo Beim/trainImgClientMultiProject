@@ -3,6 +3,7 @@ const config = {
         hostname: '119.29.160.85',
         port: '20002',
     },
+    // 默认训练参数
     solver: {
         defaultSolver: {
             net: "model/train_val.prototxt",
@@ -26,6 +27,7 @@ const config = {
         BASE_LR: 0.001,
     },
     train: {
+        // 训练停止条件
         max_loss: 0.1,
     },
     schedule: '* * 0 * * *', // 每日执行任务的时间 每天0点

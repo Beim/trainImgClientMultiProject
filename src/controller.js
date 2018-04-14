@@ -164,6 +164,7 @@ class Caffe {
         }
     }
 
+    // 生成标记
     genLabels() {
         const labelNames = fs.readdirSync(this.paths['images'])
         const trainTxtFd = fs.openSync(this.paths['trainTxt'], 'w')
@@ -185,6 +186,7 @@ class Caffe {
         fs.closeSync(testTxtFd)
     }
 
+    // 将图片转成lmdb
     convImgs2Lmdb() {
         const paths = this.paths
         child_process.execSync(`"${paths['convertTool']}" ${paths['trainTxt']} ${paths['testTxt']} ${paths['lmdb']} 2> /dev/null`)
@@ -198,6 +200,7 @@ class Caffe {
             child_process.execSync(`rm -r ${paths['snapshot']}/*`)
     }
 
+    // 异步训练
     caffeTrainAsync(solver) {
         solver.sync()
         return new Promise((resolve, reject) => {
@@ -215,6 +218,7 @@ class Caffe {
         })
     }
 
+    // 异步测试
     caffeTestAsync(solver) {
         let loss = -1
         return new Promise((resolve, reject) => {
@@ -272,6 +276,7 @@ snapshot_prefix: "snapshot/bvlc_googlenet"
 solver_mode: CPU
 */
 
+// 管理训练参数的类
 class Solver {
     
     constructor(project) {
@@ -283,6 +288,7 @@ class Solver {
         this.BASE_LR = config.solver.BASE_LR
     }
 
+    // 还原到默认配置
     recover() {
         this.losses = []
         this.config = JSON.parse(JSON.stringify(config.solver.defaultSolver))
@@ -303,6 +309,7 @@ class Solver {
         fs.writeFileSync(this.solverPath, solver_prototxt)
     }
 
+    // 调整参数的策略
     autoAdjustConfig() {
         let losses_len = this.losses.length
         if (losses_len > 2 && this.losses[losses_len - 1] > 10 * this.losses[losses_len - 2]) {
@@ -332,6 +339,7 @@ class Solver {
         this.sync()
     }
 
+    // 更新参数，并同步到文件
     update(new_config={}) {
         Object.assign(this.config, new_config)
         this.sync()
