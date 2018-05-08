@@ -23,6 +23,7 @@ class Controller {
                 projectPath: path.resolve(__dirname, 'projects', val.name),
             }
         })
+        util.logobj(projects)
         // 2. 检查项目目录
         for (let project of this.projects) {
             if (!fs.existsSync(project['projectPath'])) {
@@ -47,15 +48,15 @@ class Controller {
             if (!project.hasUntrainedImgs) continue
             let trainSuccess = await this.trainModelAsync(project)
             if (trainSuccess) {
-                console.log('uploading model')
+                util.log('uploading model')
                 // 上传模型
                 await this.uploadCaffemodel(project)
                 // 更新图片训练成功
                 await this.updateImageTrainStatus(project.untrainedImgs)
-                console.log('updateImageTrainStatus ok')
+                util.log('updateImageTrainStatus ok')
             }
             else {
-                console.log('train failed, remove images')
+                util.log('train failed, remove images')
                 for (let imgType of project.untrainedImgs) {
                     const imgSavePath = path.resolve(project.projectPath, 'rawimages', String(imgType.labelNo))
                     child_process.execSync(`rm -r ${imgSavePath}`)
@@ -99,12 +100,12 @@ class Controller {
         let loss = 1000
         while (loss > config.train.max_loss) {
             if (!solver.autoAdjustConfig()) break
-            console.log('iter: ', solver.config.max_iter, ' lr: ', solver.config.base_lr)
+            util.log('iter: ' + solver.config.max_iter + ' lr: ' + solver.config.base_lr)
             await caffe.caffeTrainAsync(solver)
             await util.exec(`cp ${path.resolve(caffe.paths.snapshot, `bvlc_googlenet_iter_${solver.config.max_iter}.caffemodel`)} ${path.resolve(caffe.paths.caffemodel, 'model.caffemodel')}`)
             loss = await caffe.caffeTestAsync(solver)
         }
-        console.log('test: ', loss)
+        util.log('test: ' + loss)
         const trainSuccess = loss <= config.train.max_loss
         if (!trainSuccess) {
             if (fs.existsSync(caffemodelBackFilePath)) {
@@ -122,6 +123,7 @@ class Controller {
             util.mkdirSync(imgSavePath)
         }
         let ret = await util.requestServer('GET', `/image/raw/list?projectId=${imgType.projectId}&&labelNo=${imgType.labelNo}`)
+        util.log(`get /image/raw/list?projectId=${imgType.projectId}&&labelNo=${imgType.labelNo}`)
         if (!ret) throw(`get /image/raw/list?projectId=${imgType.projectId}&&labelNo=${imgType.labelNo} error`)
         const imgList = ret.data
         for (let imgname of imgList) {
@@ -243,7 +245,7 @@ class Caffe {
                 }
             })
             sub_proc.on('close', (code) => {
-                console.log('loss: ', loss)
+                util.log('loss: ' + loss)
                 solver.losses.push(loss)
                 resolve(code === 0 ? loss : -1)
                 

@@ -109,6 +109,15 @@ class Util {
             })
         })
     }
+
+    log(str) {
+        console.log(`\n${new Date().toLocaleString()}----------------------------`)
+        console.log(str)
+    }
+    
+    logobj(obj, num=2) {
+        this.log(JSON.stringify(obj, null, num))
+    }
 }
 
 module.exports = new Util()
