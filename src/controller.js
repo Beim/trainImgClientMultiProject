@@ -14,6 +14,7 @@ class Controller {
 
     async run() {
         // 1. 获取所有项目
+        util.log(`GET /projects`)
         let ret = await util.requestServer('GET', '/projects')
         if (!ret) throw('get projects error')
         this.projects = ret.data.map((val, idx) => {
@@ -23,7 +24,7 @@ class Controller {
                 projectPath: path.resolve(__dirname, 'projects', val.name),
             }
         })
-        util.logobj(projects)
+        util.logobj(this.projects)
         // 2. 检查项目目录
         for (let project of this.projects) {
             if (!fs.existsSync(project['projectPath'])) {
@@ -32,8 +33,10 @@ class Controller {
         }
         // 3. 获取新增图片素材
         for (let project of this.projects) {
+            util.log(`GET /images?projectId=${project.id}&&isTrained=false&&isBlocked=false`)
             ret = await util.requestServer('GET', `/images?projectId=${project.id}&&isTrained=false&&isBlocked=false`)
             if (!ret) throw('get untrainedImgs error')
+            util.logobj(ret)
             const untrainedImgs = ret.data
             project.untrainedImgs = untrainedImgs
             // 标记有新增图片的项目
