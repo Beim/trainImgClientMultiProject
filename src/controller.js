@@ -210,6 +210,7 @@ class Caffe {
         solver.sync()
         return new Promise((resolve, reject) => {
             const subProc = child_process.spawn(this.paths['caffeTool'], ['train', `--solver=${solver.solverPath}`], {cwd: this.project['projectPath']})
+            util.log(`${this.paths['caffeTool']} train --solver=${solver.solverPath}; cwd=${this.project['projectPath']}`)
             subProc.stderr.on('data', data => {
                 // console.log('stderr: ')
                 // console.log(data.toString())
