@@ -135,7 +135,9 @@ class Controller {
                 labelNo: imgType.labelNo,
                 imgname: imgname,
             })
+            util.log(`GET /image/raw?${queryStr}`)
             ret = await util.requestServer('GET', `/image/raw?${queryStr}`)
+            util.log(JSON.stringify(ret))
             if (!ret || ret.ok !== 1) ret = await util.requestServer('GET', `/image/raw?${queryStr}`)
             if (!ret || ret.ok !== 1) throw(`get /image/raw?${queryStr} error`)
             let imgStr = ret.data
